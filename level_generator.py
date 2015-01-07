@@ -22,8 +22,23 @@ def extrude_face(mesh, index, x, y, z):
     if z != 0:
         axis_z = True
     bpy.ops.mesh.extrude_region_move(MESH_OT_extrude_region={"mirror":False}, TRANSFORM_OT_translate={"value":(x, y, z), "constraint_axis":(axis_x, axis_y, axis_z)})
+	
     bpy.ops.mesh.select_all(action="DESELECT")  
 
+def extrude_face_simple(mesh, x, y, z):
+    axis_x = False
+    axis_y = False
+    axis_z = False
+    if x != 0:
+        axis_x = True
+    if y != 0:
+        axis_y = True
+    if z != 0:
+        axis_z = True
+    bpy.ops.mesh.extrude_region_move(MESH_OT_extrude_region={"mirror":False}, TRANSFORM_OT_translate={"value":(x, y, z), "constraint_axis":(axis_x, axis_y, axis_z)})
+	
+    bpy.ops.mesh.select_all(action="DESELECT")  
+	
 def extrude_face_multiple(mesh, x, y, z, from_face, to_face):	
 	bpy.ops.mesh.select_all(action="DESELECT")  
 	mesh.faces[from_face].select = True
@@ -77,7 +92,21 @@ def makeMaterial(name, diffuse, specular, alpha):
     mat.alpha = alpha
     mat.ambient = 1
     return mat
- 
+	
+def createMaterial(mesh, ob, name):
+	img = bpy.data.images.load('D://ESGI/Dev_3D/Level_Generator/'+name)
+	tex = bpy.data.textures.new('TexName', type = 'IMAGE')
+	tex.image = img
+	mat = bpy.data.materials.new('MatName')
+	
+	
+	#print(ob.data.uv_textures.active)
+	#ob.data.uv_textures.active.data[0].image = img
+	ctex = mat.texture_slots.add()
+	ctex.texture = tex
+	ctex.texture_coords = 'ORCO'
+	return mat
+	
 def setMaterial(ob, mat):
     me = ob.data
     me.materials.append(mat)
@@ -88,7 +117,7 @@ def update_bmesh(bm, mesh_data):
     
 def map(length, width, height):
 	print("-----Gen Level-----")
-	bpy.ops.mesh.primitive_plane_add(location=(0,0,0))
+	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
 	mesh_object = bpy.context.object
 	mesh_data = mesh_object.data
 	
@@ -97,19 +126,24 @@ def map(length, width, height):
 	
 	bpy.ops.object.mode_set(mode='EDIT')
 	mat_ground = makeMaterial('Red', (1,0,0), (1,1,1), 1)
+	
 	mesh = bmesh.from_edit_mesh(mesh_data)
-
-	scale_face(mesh, 0, length, width, 0)
-	#setMaterial(mesh_object, mat_ground)
-
-	mesh.faces[0].select = True
+	
+	mat = createMaterial(mesh, mesh_object,'color.jpg')
+	setMaterial(mesh_object, mat)
+	
+	extrude_face(mesh, 2, length, 0, 0)
+	mesh.faces[1].select = True
+	mesh.faces[9].select = True
+	extrude_face_simple(mesh, 0, width, 0)
+	"""mesh.faces[0].select = True
 	bpy.ops.mesh.subdivide()
 	bpy.ops.mesh.subdivide()
 	bpy.ops.mesh.subdivide()
-	bpy.ops.mesh.subdivide()
+	bpy.ops.mesh.subdivide()"""
 	
 	# Walls extrude #
-	index_topright = 0
+	"""index_topright = 0
 	index_bottomright = 255
 	index_bottomleft = 215
 	index_topleft = 175
@@ -122,20 +156,34 @@ def map(length, width, height):
 	index_bottomleft = index_bottomleft + 1
 	extrude_face_multiple(mesh, 0,0, height, index_bottomleft, index_bottomright)
 
-	extrude_face_multiple(mesh, 0,0, height, 63, 66)
+	extrude_face_multiple(mesh, 0,0, height, 63, 66)"""
 	
+	bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
-	bpy.ops.transform.resize(value=(0.4375, 0.4375, 0.4375), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
-	bpy.ops.transform.translate(value=(-7.5, -5.74, 0), constraint_axis=(True, True, False))
-
+	#bpy.ops.transform.resize(value=(0.3, 0.3, 0.3), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
+	bpy.ops.transform.translate(value=(0, 0, 2), constraint_axis=(False, False, True))
+	
+	
+	
+	wall = bpy.context.active_object
+	wall_data = wall.data
+	bpy.ops.object.mode_set(mode='EDIT')
+	mesh = bmesh.from_edit_mesh(wall_data)
+	extrude_face(mesh, 2, length, 0, 0)
+	mesh.faces[5].select = True
+	mesh.faces[8].select = True
+	extrude_face_simple(mesh, 0, 0, height)
+	#
+	 
+	 
 	#Walls inside
-	extrude_face_multiple(mesh, 0,0, height, 45, 69)
+	"""extrude_face_multiple(mesh, 0,0, height, 45, 69)
 	rand_faces = [5, 31, 34, 79, 166]
 	extrude_face_multiple(mesh, 0,0, height, 8,random.choice(rand_faces))
 	
 	from_rand_faces = [97, 98, 209]
 	to_rand_faces = [12, 24, 138]
-	extrude_face_multiple(mesh, 0,0, height, random.choice(from_rand_faces),random.choice(to_rand_faces))
+	extrude_face_multiple(mesh, 0,0, height, random.choice(from_rand_faces),random.choice(to_rand_faces))"""
 	
 	"""from_rand_faces = [97, 98, 209]
 	to_rand_faces = [12, 24, 138]
@@ -164,12 +212,12 @@ def print_index():
     i = 0
     
 
-    #for vert in mesh.verts:
-     #   if vert.select == True:
-      #      print(i)
-       # i = i + 1   
-length = 9
-width = 7
+    """for vert in mesh.verts:
+        if vert.select == True:
+            print(i)
+        i = i + 1   """
+length = 15
+width = 15
 height = 3
 #print_index()
 map(length, width, height)
