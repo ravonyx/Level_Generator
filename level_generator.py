@@ -112,9 +112,27 @@ def setMaterial(ob, mat):
     me.materials.append(mat)
    
 def update_bmesh(bm, mesh_data):
-	bpy.ops.object.mode_set(mode='OBJECT')  
+	
 	bm.to_mesh(mesh_data)
-    
+
+def duplicate_object(scene, name, copyobj):
+	# Create new mesh
+	mesh = bpy.data.meshes.new(name)
+
+	# Create new object associated with the mesh
+	ob_new = bpy.data.objects.new(name, mesh)
+
+	# Copy data block from the old object into the new object
+	ob_new.data = copyobj.data.copy()
+	ob_new.scale = copyobj.scale
+	ob_new.location = copyobj.location
+
+	# Link new object to the given scene and select it
+	scene.objects.link(ob_new)
+	ob_new.select = True
+
+	return ob_new
+	
 def map(length, width, height):
 	print("-----Gen Level-----")
 	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
@@ -128,9 +146,7 @@ def map(length, width, height):
 	mat_ground = makeMaterial('Red', (1,0,0), (1,1,1), 1)
 	
 	mesh = bmesh.from_edit_mesh(mesh_data)
-	
 	mat = createMaterial(mesh, mesh_object,'color.jpg')
-	setMaterial(mesh_object, mat)
 	
 	extrude_face(mesh, 2, length, 0, 0)
 	mesh.faces[1].select = True
@@ -158,24 +174,55 @@ def map(length, width, height):
 
 	extrude_face_multiple(mesh, 0,0, height, 63, 66)"""
 	
+	
+	""" WALL LENGTH """
+	#create a simple cube and move it to the right place
 	bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
 	#bpy.ops.transform.resize(value=(0.3, 0.3, 0.3), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
 	bpy.ops.transform.translate(value=(0, 0, 2), constraint_axis=(False, False, True))
 	
-	
-	
+	#get data from the cube and set material
 	wall = bpy.context.active_object
 	wall_data = wall.data
+	setMaterial(wall, mat)
+	#edit the mesh and transform it in a wall
 	bpy.ops.object.mode_set(mode='EDIT')
 	mesh = bmesh.from_edit_mesh(wall_data)
 	extrude_face(mesh, 2, length, 0, 0)
 	mesh.faces[5].select = True
 	mesh.faces[8].select = True
 	extrude_face_simple(mesh, 0, 0, height)
-	#
-	 
-	 
+	bpy.ops.object.mode_set(mode='OBJECT')  
+	#duplicate this wall and move it
+	bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, width, 0), "constraint_axis":(False, True, False)});
+	
+	""" WALL WIDTH """
+	#create a simple cube and move it to the right place
+	bpy.ops.object.mode_set(mode='OBJECT')
+	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
+	#bpy.ops.transform.resize(value=(0.3, 0.3, 0.3), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
+	bpy.ops.transform.translate(value=(0, 0, 2), constraint_axis=(False, False, True))
+	
+	#get data from the cube
+	wall = bpy.context.active_object
+	wall_data = wall.data
+	setMaterial(wall, mat)
+	#edit the mesh and transform it in a wall
+	bpy.ops.object.mode_set(mode='EDIT')
+	mesh = bmesh.from_edit_mesh(wall_data)
+	extrude_face(mesh, 1, 0, width, 0)
+	mesh.faces[5].select = True
+	mesh.faces[8].select = True
+	extrude_face_simple(mesh, 0, 0, height)
+	bpy.ops.object.mode_set(mode='OBJECT')  
+	
+	#duplicate this wall and move it
+	bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(length, 0, 0), "constraint_axis":(True, False, False)});
+	
+	#get the scene
+	#scene = bpy.context.scene
+	
 	#Walls inside
 	"""extrude_face_multiple(mesh, 0,0, height, 45, 69)
 	rand_faces = [5, 31, 34, 79, 166]
