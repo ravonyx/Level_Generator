@@ -105,6 +105,7 @@ def createMaterial(mesh, ob, name):
 	ctex = mat.texture_slots.add()
 	ctex.texture = tex
 	ctex.texture_coords = 'ORCO'
+	ctex.mapping = 'CUBE'
 	return mat
 	
 def setMaterial(ob, mat):
@@ -143,15 +144,18 @@ def map(length, width, height):
 	bm.from_mesh(mesh_data)
 	
 	bpy.ops.object.mode_set(mode='EDIT')
-	mat_ground = makeMaterial('Red', (1,0,0), (1,1,1), 1)
+	#mat_ground = makeMaterial('Red', (1,0,0), (1,1,1), 1)
 	
 	mesh = bmesh.from_edit_mesh(mesh_data)
-	mat = createMaterial(mesh, mesh_object,'color.jpg')
+	mat_ground = createMaterial(mesh, mesh_object,'color.jpg')
+	
 	
 	extrude_face(mesh, 2, length, 0, 0)
 	mesh.faces[1].select = True
 	mesh.faces[9].select = True
 	extrude_face_simple(mesh, 0, width, 0)
+	
+	setMaterial(mesh_object, mat_ground);
 	"""mesh.faces[0].select = True
 	bpy.ops.mesh.subdivide()
 	bpy.ops.mesh.subdivide()
@@ -174,8 +178,8 @@ def map(length, width, height):
 
 	extrude_face_multiple(mesh, 0,0, height, 63, 66)"""
 	
-	
-	""" WALL LENGTH """
+	mat_wall = createMaterial(mesh, mesh_object,'wall.jpg')
+	#WALL LENGTH
 	#create a simple cube and move it to the right place
 	bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
@@ -185,19 +189,22 @@ def map(length, width, height):
 	#get data from the cube and set material
 	wall = bpy.context.active_object
 	wall_data = wall.data
-	setMaterial(wall, mat)
+	
 	#edit the mesh and transform it in a wall
 	bpy.ops.object.mode_set(mode='EDIT')
 	mesh = bmesh.from_edit_mesh(wall_data)
+
+	
 	extrude_face(mesh, 2, length, 0, 0)
 	mesh.faces[5].select = True
 	mesh.faces[8].select = True
 	extrude_face_simple(mesh, 0, 0, height)
 	bpy.ops.object.mode_set(mode='OBJECT')  
 	#duplicate this wall and move it
+	setMaterial(wall, mat_wall)
 	bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, width, 0), "constraint_axis":(False, True, False)});
 	
-	""" WALL WIDTH """
+	#WALL WIDTH 
 	#create a simple cube and move it to the right place
 	bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
@@ -207,7 +214,7 @@ def map(length, width, height):
 	#get data from the cube
 	wall = bpy.context.active_object
 	wall_data = wall.data
-	setMaterial(wall, mat)
+	#setMaterial(wall, mat)
 	#edit the mesh and transform it in a wall
 	bpy.ops.object.mode_set(mode='EDIT')
 	mesh = bmesh.from_edit_mesh(wall_data)
@@ -217,9 +224,10 @@ def map(length, width, height):
 	extrude_face_simple(mesh, 0, 0, height)
 	bpy.ops.object.mode_set(mode='OBJECT')  
 	
+	setMaterial(wall, mat_wall)
 	#duplicate this wall and move it
 	bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(length, 0, 0), "constraint_axis":(True, False, False)});
-	
+
 	#get the scene
 	#scene = bpy.context.scene
 	
@@ -263,9 +271,9 @@ def print_index():
         if vert.select == True:
             print(i)
         i = i + 1   """
-length = 15
-width = 15
-height = 3
+length = 30
+width = 30
+height = 5
 #print_index()
 map(length, width, height)
 
