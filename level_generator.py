@@ -5,10 +5,6 @@ from mathutils import *
 import bmesh
 import random
 
-def update_bmesh(bm, mesh_data):
-    bpy.ops.object.mode_set(mode='OBJECT')  
-    bm.to_mesh(mesh_data)
-    
 def extrude_face(mesh, index, x, y, z):
     bpy.ops.mesh.select_all(action="DESELECT")
     mesh.faces[index].select = True
@@ -80,28 +76,13 @@ def scale_face(mesh, index, x,y,z):
     mesh.faces[index].select = True
     bpy.ops.transform.resize(value=(x, y, z), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
     bpy.ops.mesh.select_all(action="DESELECT")  
-
-def makeMaterial(name, diffuse, specular, alpha):
-    mat = bpy.data.materials.new(name)
-    mat.diffuse_color = diffuse
-    mat.diffuse_shader = 'LAMBERT' 
-    mat.diffuse_intensity = 1.0 
-    mat.specular_color = specular
-    mat.specular_shader = 'COOKTORR'
-    mat.specular_intensity = 0.5
-    mat.alpha = alpha
-    mat.ambient = 1
-    return mat
 	
-def createMaterial(mesh, ob, name):
+def createMaterial(name):
 	img = bpy.data.images.load('D://ESGI/Dev_3D/Level_Generator/'+name)
 	tex = bpy.data.textures.new('TexName', type = 'IMAGE')
 	tex.image = img
 	mat = bpy.data.materials.new('MatName')
 	
-	
-	#print(ob.data.uv_textures.active)
-	#ob.data.uv_textures.active.data[0].image = img
 	ctex = mat.texture_slots.add()
 	ctex.texture = tex
 	ctex.texture_coords = 'ORCO'
@@ -111,10 +92,6 @@ def createMaterial(mesh, ob, name):
 def setMaterial(ob, mat):
     me = ob.data
     me.materials.append(mat)
-   
-def update_bmesh(bm, mesh_data):
-	
-	bm.to_mesh(mesh_data)
 
 def duplicate_object(scene, name, copyobj):
 	# Create new mesh
@@ -131,58 +108,64 @@ def duplicate_object(scene, name, copyobj):
 	# Link new object to the given scene and select it
 	scene.objects.link(ob_new)
 	ob_new.select = True
-
+	
 	return ob_new
 	
 def map(length, width, height):
 	print("-----Gen Level-----")
-	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
-	mesh_object = bpy.context.object
-	mesh_data = mesh_object.data
 	
-	bm = bmesh.new()
-	bm.from_mesh(mesh_data)
+	base_length = length
+	base_width = width
+	pos_z = 0
+	length = uniform(30,50)
+	width = uniform(30,50)
+	
+	#FIRST FLOOR
+	#ground under
+	create_ground(pos_z, length, width)
+	#wall
+	create_walls_border(pos_z, length, width, 0)
+	create_walls_border(pos_z, length, width, 1)
+	pos_z = height + 4
+	#ground above
+	create_ground(pos_z, length, width)
+	
+	bpy.ops.object.mode_set(mode='OBJECT')
+	
+	#SECOND FLOOR
+	pos_z = pos_z + 1
+	length = uniform(30,50)
+	width = uniform(30,50)
+	#ground under
+	create_ground(pos_z, length, width)
+	#wall
+	create_walls_border(pos_z, length, width, 0)
+	create_walls_border(pos_z, length, width, 1)
+	pos_z = height*2 + 4*2
+
+def create_ground(pos_z, length, width):
+	mat_ground = createMaterial('ground.png')
+	
+	bpy.ops.mesh.primitive_cube_add(location=(0,0,pos_z))
+	ground = bpy.context.active_object
+	ground_data = ground.data
 	
 	bpy.ops.object.mode_set(mode='EDIT')
-	#mat_ground = makeMaterial('Red', (1,0,0), (1,1,1), 1)
-	
-	mesh = bmesh.from_edit_mesh(mesh_data)
-	mat_ground = createMaterial(mesh, mesh_object,'color.jpg')
-	
+	mesh = bmesh.from_edit_mesh(ground_data)
 	
 	extrude_face(mesh, 2, length, 0, 0)
 	mesh.faces[1].select = True
 	mesh.faces[9].select = True
 	extrude_face_simple(mesh, 0, width, 0)
 	
-	setMaterial(mesh_object, mat_ground);
-	"""mesh.faces[0].select = True
-	bpy.ops.mesh.subdivide()
-	bpy.ops.mesh.subdivide()
-	bpy.ops.mesh.subdivide()
-	bpy.ops.mesh.subdivide()"""
+	setMaterial(ground, mat_ground)
 	
-	# Walls extrude #
-	"""index_topright = 0
-	index_bottomright = 255
-	index_bottomleft = 215
-	index_topleft = 175
+def create_walls_border(pos_z, length, width, isWidth):
+	mat_wall = createMaterial('wall.jpg')
 
-	extrude_face_multiple(mesh, 0,0, height, index_topright, index_topleft)
-	
-	index_topleft = index_topleft + 1
-	extrude_face_multiple(mesh, 0,0, height, index_topleft, index_bottomleft)
-
-	index_bottomleft = index_bottomleft + 1
-	extrude_face_multiple(mesh, 0,0, height, index_bottomleft, index_bottomright)
-
-	extrude_face_multiple(mesh, 0,0, height, 63, 66)"""
-	
-	mat_wall = createMaterial(mesh, mesh_object,'wall.jpg')
-	#WALL LENGTH
 	#create a simple cube and move it to the right place
 	bpy.ops.object.mode_set(mode='OBJECT')
-	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
+	bpy.ops.mesh.primitive_cube_add(location=(0,0,pos_z))
 	#bpy.ops.transform.resize(value=(0.3, 0.3, 0.3), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
 	bpy.ops.transform.translate(value=(0, 0, 2), constraint_axis=(False, False, True))
 	
@@ -194,66 +177,22 @@ def map(length, width, height):
 	bpy.ops.object.mode_set(mode='EDIT')
 	mesh = bmesh.from_edit_mesh(wall_data)
 
-	
-	extrude_face(mesh, 2, length, 0, 0)
+	if(isWidth == 0):
+		extrude_face(mesh, 2, length, 0, 0)
+	else:
+		extrude_face(mesh, 1, 0, width, 0)
+		
 	mesh.faces[5].select = True
 	mesh.faces[8].select = True
 	extrude_face_simple(mesh, 0, 0, height)
 	bpy.ops.object.mode_set(mode='OBJECT')  
 	#duplicate this wall and move it
 	setMaterial(wall, mat_wall)
-	bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, width, 0), "constraint_axis":(False, True, False)});
 	
-	#WALL WIDTH 
-	#create a simple cube and move it to the right place
-	bpy.ops.object.mode_set(mode='OBJECT')
-	bpy.ops.mesh.primitive_cube_add(location=(0,0,0))
-	#bpy.ops.transform.resize(value=(0.3, 0.3, 0.3), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
-	bpy.ops.transform.translate(value=(0, 0, 2), constraint_axis=(False, False, True))
-	
-	#get data from the cube
-	wall = bpy.context.active_object
-	wall_data = wall.data
-	#setMaterial(wall, mat)
-	#edit the mesh and transform it in a wall
-	bpy.ops.object.mode_set(mode='EDIT')
-	mesh = bmesh.from_edit_mesh(wall_data)
-	extrude_face(mesh, 1, 0, width, 0)
-	mesh.faces[5].select = True
-	mesh.faces[8].select = True
-	extrude_face_simple(mesh, 0, 0, height)
-	bpy.ops.object.mode_set(mode='OBJECT')  
-	
-	setMaterial(wall, mat_wall)
-	#duplicate this wall and move it
-	bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(length, 0, 0), "constraint_axis":(True, False, False)});
-
-	#get the scene
-	#scene = bpy.context.scene
-	
-	#Walls inside
-	"""extrude_face_multiple(mesh, 0,0, height, 45, 69)
-	rand_faces = [5, 31, 34, 79, 166]
-	extrude_face_multiple(mesh, 0,0, height, 8,random.choice(rand_faces))
-	
-	from_rand_faces = [97, 98, 209]
-	to_rand_faces = [12, 24, 138]
-	extrude_face_multiple(mesh, 0,0, height, random.choice(from_rand_faces),random.choice(to_rand_faces))"""
-	
-	"""from_rand_faces = [97, 98, 209]
-	to_rand_faces = [12, 24, 138]
-	extrude_face_multiple(mesh, 0,0, height, random.choice(from_rand_faces),random.choice(to_rand_faces))"""
-	
-	#Stairs extrude#
-	"""height_inc = height / 4
-	height_stair = height
-	extrude_face(mesh, 149, 0, 0, height_stair)
-	height_stair = height_stair - height_inc
-	extrude_face(mesh, 150, 0, 0, height_stair)
-	height_stair = height_stair - height_inc
-	extrude_face(mesh, 77, 0, 0, height_stair)
-	height_stair = height_stair - height_inc
-	extrude_face(mesh, 78, 0, 0, height_stair)"""
+	if(isWidth == 0):
+		bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, width, 0), "constraint_axis":(False, True, False)});
+	else:
+		bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(length, 0, 0), "constraint_axis":(True, False, False)});
 	
 def print_index():
     mesh = bpy.context.object
@@ -265,15 +204,15 @@ def print_index():
             print(i)
         i = i + 1
     i = 0
-    
-
+   
     """for vert in mesh.verts:
         if vert.select == True:
             print(i)
         i = i + 1   """
+		
 length = 30
 width = 30
-height = 5
+height = 15
 #print_index()
 map(length, width, height)
 
