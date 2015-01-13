@@ -78,7 +78,7 @@ def scale_face(mesh, index, x,y,z):
     bpy.ops.mesh.select_all(action="DESELECT")  
 	
 def createMaterial(name):
-	img = bpy.data.images.load('D://ESGI/Dev_3D/Level_Generator/'+name)
+	img = bpy.data.images.load('//'+name)
 	tex = bpy.data.textures.new('TexName', type = 'IMAGE')
 	tex.image = img
 	mat = bpy.data.materials.new('MatName')
