@@ -130,7 +130,6 @@ def map(length, width, height):
 	border_length = length - 10
 	border_width = width - 10
 	
-	
 	#walls inside
 	if length < width:
 		pos_x = uniform(border_length/2 , border_length)
@@ -139,16 +138,12 @@ def map(length, width, height):
 		length_wall = uniform(5,border_length)
 		create_wall_inside(2, pos_x, pos_y, pos_z, height, length_wall, border_length, 0)
 		
-		bpy.ops.object.mode_set(mode='OBJECT')
-
 		pos_x2 = uniform(2 , border_length/2)
 		pos_y2 = uniform(border_width/3 + 10 , border_width * 2/3)
 			
 		length_wall = uniform(5,border_length)
 		create_wall_inside(2, pos_x2, pos_y2, pos_z, height, length_wall, border_length, 0)
-		
-		bpy.ops.object.mode_set(mode='OBJECT')
-		
+				
 		pos_x3 = uniform(border_length/2 , border_length)
 		pos_y3 = uniform(border_width * 2/3 + 10 , border_width)
 			
@@ -159,10 +154,8 @@ def map(length, width, height):
 		pos_x = uniform(10 , border_length/3)
 		pos_y = uniform(border_width/2 , border_width)
 		
-		length_wall = uniform(5,border_length)
-		create_wall_inside(1, pos_x, pos_y, pos_z, height, length_wall, border_width, 1)
-		
-		bpy.ops.object.mode_set(mode='OBJECT')
+		length_wall = uniform(5,border_width)
+		create_wall_inside(4, pos_x, pos_y, pos_z, height, length_wall, border_width, 1)
 
 		pos_x2 = uniform(border_length/3 + 10 , border_length * 2/3)
 		pos_y2 = uniform(2 , border_width/2)
@@ -170,21 +163,17 @@ def map(length, width, height):
 		length_wall = uniform(5,border_length)
 		create_wall_inside(1, pos_x2, pos_y2, pos_z, height, length_wall, border_width, 1)
 		
-		bpy.ops.object.mode_set(mode='OBJECT')
-		
 		pos_x3 =	uniform(border_length * 2/3 + 10 , border_length)
 		pos_y3 =	uniform(border_width/2 , border_width)
 			
 		length_wall = uniform(5,border_length)
 		create_wall_inside(1, pos_x3, pos_y3, pos_z, height, length_wall, border_width, 1)
 	
-	bpy.ops.object.mode_set(mode='OBJECT')
 	
 	pos_z = height + 4
-	#ground above
-	create_ground(pos_z, length, width)
+	#cap
+	create_cap(pos_z, length, width)
 	
-	bpy.ops.object.mode_set(mode='OBJECT')
 	
 	#SECOND FLOOR
 	"""pos_z = pos_z + 1
@@ -195,7 +184,9 @@ def map(length, width, height):
 	#wall
 	create_walls_border(pos_z, length, width, 0)
 	create_walls_border(pos_z, length, width, 1)
-	pos_z = height*2 + 4*2"""
+	
+	border_length = length - 10
+	border_width = width - 10"""
 
 def create_wall_inside(index, pos_x, pos_y, pos_z, height, length_wall, border, isWidth):
 	mat_wall_inside = createMaterial('wall_inside.jpg')
@@ -208,17 +199,18 @@ def create_wall_inside(index, pos_x, pos_y, pos_z, height, length_wall, border, 
 	bpy.ops.object.mode_set(mode='EDIT')
 	mesh = bmesh.from_edit_mesh(wall_inside_data)
 	
+	print(pos_y)
 	print(pos_x)
 	print(length_wall)
 	print(border)
 	
 	if isWidth == 0:
 		if length_wall + pos_x > border:
-			print("out of border")
+			print("out of border height")
 			pos_x = border - length_wall
 	else:
 		if length_wall + pos_y > border:
-			print("out of border")
+			print("out of border width")
 			pos_y = border - length_wall
 			
 	bpy.ops.object.mode_set(mode='OBJECT')
@@ -238,6 +230,29 @@ def create_wall_inside(index, pos_x, pos_y, pos_z, height, length_wall, border, 
 	
 	setMaterial(wall_inside, mat_wall_inside)
 	
+	bpy.ops.object.mode_set(mode='OBJECT')
+	bpy.ops.object.shade_smooth()
+	
+def create_cap(pos_z, length, width):
+	mat_cap = createMaterial('cap.jpg')
+	
+	bpy.ops.mesh.primitive_cube_add(location=(0,0,pos_z))
+	cap = bpy.context.active_object
+	cap_data = cap.data
+	
+	bpy.ops.object.mode_set(mode='EDIT')
+	mesh = bmesh.from_edit_mesh(cap_data)
+	
+	extrude_face(mesh, 2, length, 0, 0)
+	mesh.faces[1].select = True
+	mesh.faces[9].select = True
+	extrude_face_simple(mesh, 0, width, 0)
+	
+	setMaterial(cap, mat_cap)
+	
+	bpy.ops.object.mode_set(mode='OBJECT')
+	bpy.ops.object.shade_smooth()
+	
 def create_ground(pos_z, length, width):
 	mat_ground = createMaterial('ground.png')
 	
@@ -254,6 +269,9 @@ def create_ground(pos_z, length, width):
 	extrude_face_simple(mesh, 0, width, 0)
 	
 	setMaterial(ground, mat_ground)
+
+	bpy.ops.object.mode_set(mode='OBJECT')
+	bpy.ops.object.shade_smooth()
 	
 def create_walls_border(pos_z, length, width, isWidth):
 	mat_wall = createMaterial('wall.jpg')
@@ -291,6 +309,8 @@ def create_walls_border(pos_z, length, width, isWidth):
 		bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, width, 0), "constraint_axis":(False, True, False)});
 	else:
 		bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(length, 0, 0), "constraint_axis":(True, False, False)});
+		
+	bpy.ops.object.shade_smooth()
 	
 def print_index():
     mesh = bpy.context.object
