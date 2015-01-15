@@ -117,10 +117,22 @@ def map(length, width, height):
 	base_length = length
 	base_width = width
 	pos_z = 0
+	
+	#FIRST FLOOR
+	create_level(pos_z, 1)
+	
+	#SECOND FLOOR
+	pos_z = height + 5
+	create_level(pos_z, 2)
+	
+	#THIRD FLOOR
+	pos_z = height*2 + 5 *2
+	create_level(pos_z, 3)
+
+def create_level(pos_z, num_level):
 	length = uniform(30,50)
 	width = uniform(30,50)
 	
-	#FIRST FLOOR
 	#ground under
 	create_ground(pos_z, length, width)
 	#wall
@@ -132,62 +144,53 @@ def map(length, width, height):
 	
 	#walls inside
 	if length < width:
-		pos_x = uniform(border_length/2 , border_length)
-		pos_y = uniform(10 ,border_width/3)
-		
-		length_wall = uniform(5,border_length)
-		create_wall_inside(2, pos_x, pos_y, pos_z, height, length_wall, border_length, 0)
-		
-		pos_x2 = uniform(2 , border_length/2)
-		pos_y2 = uniform(border_width/3 + 10 , border_width * 2/3)
-			
-		length_wall = uniform(5,border_length)
-		create_wall_inside(2, pos_x2, pos_y2, pos_z, height, length_wall, border_length, 0)
-				
-		pos_x3 = uniform(border_length/2 , border_length)
-		pos_y3 = uniform(border_width * 2/3 + 10 , border_width)
-			
-		length_wall = uniform(5,border_length)
-		create_wall_inside(2, pos_x3, pos_y3, pos_z, height, length_wall, border_length, 0)
-
+		wall_length(border_width, border_length, height, pos_z)
 	else:
-		pos_x = uniform(10 , border_length/3)
-		pos_y = uniform(border_width/2 , border_width)
-		
-		length_wall = uniform(5,border_width)
-		create_wall_inside(4, pos_x, pos_y, pos_z, height, length_wall, border_width, 1)
-
-		pos_x2 = uniform(border_length/3 + 10 , border_length * 2/3)
-		pos_y2 = uniform(2 , border_width/2)
-			
-		length_wall = uniform(5,border_length)
-		create_wall_inside(1, pos_x2, pos_y2, pos_z, height, length_wall, border_width, 1)
-		
-		pos_x3 =	uniform(border_length * 2/3 + 10 , border_length)
-		pos_y3 =	uniform(border_width/2 , border_width)
-			
-		length_wall = uniform(5,border_length)
-		create_wall_inside(1, pos_x3, pos_y3, pos_z, height, length_wall, border_width, 1)
+		wall_width(border_width, border_length, height, pos_z)
 	
-	
-	pos_z = height + 4
+	pos_z = height * num_level + 4 * num_level
 	#cap
 	create_cap(pos_z, length, width)
 	
-	
-	#SECOND FLOOR
-	"""pos_z = pos_z + 1
-	length = uniform(30,50)
-	width = uniform(30,50)
-	#ground under
-	create_ground(pos_z, length, width)
-	#wall
-	create_walls_border(pos_z, length, width, 0)
-	create_walls_border(pos_z, length, width, 1)
-	
-	border_length = length - 10
-	border_width = width - 10"""
+def wall_width(border_width, border_length, height, pos_z):
+	pos_x = uniform(10 , border_length/3)
+	pos_y = uniform(border_width/2 , border_width)
 
+	length_wall = uniform(5,border_width - 5)
+
+	create_wall_inside(1, pos_x, pos_y, pos_z, height, length_wall, border_width, 1)
+
+	pos_x2 = uniform(border_length/3 + 10 , border_length * 2/3)
+	pos_y2 = uniform(2 , border_width/2)
+		
+	length_wall = uniform(5,border_width - 5)
+	create_wall_inside(1, pos_x2, pos_y2, pos_z, height, length_wall, border_width, 1)
+
+	pos_x3 =	uniform(border_length * 2/3 + 10 , border_length)
+	pos_y3 =	uniform(border_width/2 , border_width)
+		
+	length_wall = uniform(5,border_width - 5)
+	create_wall_inside(1, pos_x3, pos_y3, pos_z, height, length_wall, border_width, 1)
+	
+def wall_length(border_width, border_length, height, pos_z):
+	pos_x = uniform(border_length/2 , border_length)
+	pos_y = uniform(10 ,border_width/3)
+
+	length_wall = uniform(5,border_length - 5)
+	create_wall_inside(2, pos_x, pos_y, pos_z, height, length_wall, border_length, 0)
+
+	pos_x2 = uniform(2 , border_length/2)
+	pos_y2 = uniform(border_width/3 + 10 , border_width * 2/3)
+		
+	length_wall = uniform(5,border_length - 5)
+	create_wall_inside(2, pos_x2, pos_y2, pos_z, height, length_wall, border_length, 0)
+			
+	pos_x3 = uniform(border_length/2 , border_length)
+	pos_y3 = uniform(border_width * 2/3 + 10 , border_width)
+		
+	length_wall = uniform(5,border_length - 5)
+	create_wall_inside(2, pos_x3, pos_y3, pos_z, height, length_wall, border_length, 0)
+	
 def create_wall_inside(index, pos_x, pos_y, pos_z, height, length_wall, border, isWidth):
 	mat_wall_inside = createMaterial('wall_inside.jpg')
 	bpy.ops.mesh.primitive_cube_add(location=(2,2,pos_z+2))
@@ -200,18 +203,16 @@ def create_wall_inside(index, pos_x, pos_y, pos_z, height, length_wall, border, 
 	mesh = bmesh.from_edit_mesh(wall_inside_data)
 	
 	print(pos_y)
-	print(pos_x)
 	print(length_wall)
 	print(border)
 	
 	if isWidth == 0:
 		if length_wall + pos_x > border:
-			print("out of border height")
 			pos_x = border - length_wall
 	else:
 		if length_wall + pos_y > border:
-			print("out of border width")
 			pos_y = border - length_wall
+			print(pos_y)
 			
 	bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.transform.translate(value=(pos_x, pos_y, 0), constraint_axis=(True, True, False))
