@@ -111,27 +111,17 @@ def duplicate_object(scene, name, copyobj):
 	
 	return ob_new
 	
-def map(length, width, height):
+def map(height):
 	print("-----Gen Level-----")
-	
-	base_length = length
-	base_width = width
 	pos_z = 0
-	
-	#FIRST FLOOR
-	create_level(pos_z, 1)
-	
-	#SECOND FLOOR
-	pos_z = height + 5
-	create_level(pos_z, 2)
-	
-	#THIRD FLOOR
-	pos_z = height*2 + 5 *2
-	create_level(pos_z, 3)
+	rand_level = randint(2,5)
+	for i in range (1, rand_level + 1):
+		create_level(pos_z, i )
+		pos_z = height * i + 4 * i
 
 def create_level(pos_z, num_level):
-	length = uniform(30,50)
-	width = uniform(30,50)
+	length = randint(30,50)
+	width = randint(30,50)
 	
 	#ground under
 	create_ground(pos_z, length, width)
@@ -329,9 +319,8 @@ def print_index():
             print(i)
         i = i + 1   """
 		
-length = 30
-width = 30
+
 height = 15
 #print_index()
-map(length, width, height)
+map(height)
 
