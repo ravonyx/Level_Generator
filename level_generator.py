@@ -185,16 +185,11 @@ def create_wall_inside(index, pos_x, pos_y, pos_z, height, length_wall, border, 
 	mat_wall_inside = createMaterial('wall_inside.jpg')
 	bpy.ops.mesh.primitive_cube_add(location=(2,2,pos_z+2))
 	
-	
 	wall_inside = bpy.context.active_object
 	wall_inside_data = wall_inside.data
 	
 	bpy.ops.object.mode_set(mode='EDIT')
 	mesh = bmesh.from_edit_mesh(wall_inside_data)
-	
-	print(pos_y)
-	print(length_wall)
-	print(border)
 	
 	if isWidth == 0:
 		if length_wall + pos_x > border:
@@ -202,7 +197,6 @@ def create_wall_inside(index, pos_x, pos_y, pos_z, height, length_wall, border, 
 	else:
 		if length_wall + pos_y > border:
 			pos_y = border - length_wall
-			print(pos_y)
 			
 	bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.transform.translate(value=(pos_x, pos_y, 0), constraint_axis=(True, True, False))
