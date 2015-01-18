@@ -1,118 +1,23 @@
 import sys
 import os
 sys.path.append(os.path.dirname(bpy.data.filepath))
-
-from tools_level import *
 from tools_blender import *
 
 import bmesh
 import bpy
 from random import *
-from bpy.props import *
- 
-#properties of the panel
-def initSceneProperties(scn):
-    bpy.types.Scene.Level = IntProperty(
-        name = "Level", 
-        description = "Enter an integer",
-        default = 3,
-        min = 1,
-        max = 6)
- 
-    bpy.types.Scene.Width = FloatProperty(
-        name = "Width", 
-        description = "Enter a float",
-        default = 40,
-        min = 30,
-        max = 50)
-        
-    bpy.types.Scene.Length = FloatProperty(
-        name = "Length", 
-        description = "Enter a float",
-        default = 40,
-        min = 30,
-        max = 50)
-    return
-initSceneProperties(bpy.context.scene)
-
-#gui panel
-class ToolsPanel(bpy.types.Panel):
-	bl_label = "Tools For Level Generator"
-	bl_space_type = "VIEW_3D"
-	bl_region_type = "TOOLS"
- 
-	def draw(self, context):
-		layout = self.layout
-		scn = context.scene
-		layout.prop(scn, 'Level')
-		layout.prop(scn, 'Width')
-		layout.prop(scn, 'Length')
-		layout.operator("level.gen")
-		layout.operator("level.delete")
-		layout.operator("level.print_index")
-
-class OBJECT_OT_GenButton(bpy.types.Operator):
-	bl_idname = "level.gen"
-	bl_label = "Gen Level"
-	def execute(self, context):
-		level = bpy.context.scene.Level
-		height = 10
-		map(level, height)
-		return{'FINISHED'}    
-
-class OBJECT_OT_DeleteButton(bpy.types.Operator):
-	bl_idname = "level.delete"
-	bl_label = "Delete Level"
-	def execute(self, context):
-		for ob in bpy.context.scene.objects:
-			ob.select = ob.type == 'MESH' and ob.name.startswith("Cube")
-			bpy.ops.object.delete()
-		return{'FINISHED'}    
-
-class OBJECT_OT_DeleteButton(bpy.types.Operator):
-	bl_idname = "level.print_index"
-	bl_label = "Print Index"
-	def execute(self, context):
-		print_index()
-		return{'FINISHED'}    
-#registration
-bpy.utils.register_module(__name__)
-
-def createMaterial(name):
-	img = bpy.data.images.load('//'+name)
-	tex = bpy.data.textures.new('TexName', type = 'IMAGE')
-	tex.image = img
-	mat = bpy.data.materials.new('MatName')
 	
-	ctex = mat.texture_slots.add()
-	ctex.texture = tex
-	ctex.texture_coords = 'ORCO'
-	ctex.mapping = 'CUBE'
-	return mat
-	
-def setMaterial(ob, mat):
-    me = ob.data
-    me.materials.append(mat)
-	
-def map(level, height):
-	print("-----Gen Level-----")
-	pos_z = 0
-	"""rand_level = randint(2,5)
-	level = 2"""
-	for i in range (1, level + 1):
-		create_level(pos_z, i, height)
-		pos_z = height * i + 4 * i 
-		pos_z += 1
 
-def create_level(pos_z, num_level, height):
+	
+def create_level(pos_z, num_level):
 	length = randint(30,50)
 	width = randint(30,50)
 	
 	#ground under
 	create_ground(pos_z, length, width)
 	#wall
-	create_walls_border(pos_z, length, width, height, 0)
-	create_walls_border(pos_z, length, width, height, 1)
+	create_walls_border(pos_z, length, width, 0)
+	create_walls_border(pos_z, length, width, 1)
 	
 	border_length = length - 10
 	border_width = width - 10
@@ -256,7 +161,7 @@ def create_ground(pos_z, length, width):
 	bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.object.shade_smooth()
 	
-def create_walls_border(pos_z, length, width, height, isWidth):
+def create_walls_border(pos_z, length, width, isWidth):
 	mat_wall = createMaterial('wall.jpg')
 
 	#create a simple cube and move it to the right place
@@ -294,4 +199,3 @@ def create_walls_border(pos_z, length, width, height, isWidth):
 		bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(length, 0, 0), "constraint_axis":(True, False, False)});
 		
 	bpy.ops.object.shade_smooth()
-

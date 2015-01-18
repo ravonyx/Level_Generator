@@ -1,6 +1,0 @@
-import bpy
-import os
-
-filename = "D:\ESGI\Dev_3D\Level_Generator\level_generator.py"
-file = open(filename).read()
-exec(compile(file,filename, 'exec'))
